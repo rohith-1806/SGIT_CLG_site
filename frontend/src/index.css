@@ -82,6 +82,11 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Override body padding for Student Portal Layout */
+body.student-portal-active {
+  padding-top: 0 !important;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

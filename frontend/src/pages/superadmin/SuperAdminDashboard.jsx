@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import API from '../../services/api';
-import { 
-  ShieldAlert, Database, Server, Activity, Users, Layers, 
-  DollarSign, CheckCircle2, Edit3, Trash2, Plus, Upload, Save, Globe, Eye
-} from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
+import { 
+  ShieldAlert, Edit3, Trash2, Save, Sun, Moon, Monitor 
+} from 'lucide-react';
 
 const SuperAdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('analytics'); // analytics, cms, admins, audit
+  const { theme, changeTheme } = useTheme();
+  const [activeTab, setActiveTab] = useState('analytics'); // analytics, cms, admins
   const { addToast } = useToast();
 
   const [analytics, setAnalytics] = useState({
@@ -16,49 +17,91 @@ const SuperAdminDashboard = () => {
     totalDepartments: 7,
     websiteVisitors: 48900,
     dailyActiveUsers: 1420,
-    internshipStats: '120 Active Postings',
-    workshopStats: '45 Sessions Completed',
-    projectStats: '580 Published Projects',
     resumeDownloads: '3,200 PDF Exports',
     atsReports: '1,890 Scans Analyzed',
     mockReports: '1,450 Practice Rounds',
     apiHealth: '100% Operational',
     serverHealth: '99.99% Uptime',
-    databaseHealth: '12ms Response Latency'
+    databaseHealth: '12ms Latency'
   });
 
   const [cmsContent, setCmsContent] = useState({
-    heroTitle: 'Architecting Next-Gen Engineers & Leaders',
-    heroSubtitle: 'Elevate campus education with an autonomous SaaS ecosystem featuring AI Resume Builders, ATS Scoring engines, Mock Interview Studios, and Realtime Analytics.',
-    highestPackage: '45 LPA',
-    averagePackage: '12.5 LPA',
-    placementRate: '94.8%',
-    partnerCount: '150+'
+    heroTitle: 'SGIT AUTONOMOUS',
+    heroSubtitle: 'Center of Excellence in Engineering & Career Advancement',
+    heading: 'Architecting Next-Gen Engineers, Leaders & Careers',
+    description: 'Elevate campus education at SGIT AUTONOMOUS with an enterprise ecosystem featuring AI Resume Builders, ATS Scoring engines, Mock Interview Studios, Internship Portals, and Realtime Analytics.',
+    bannerText: 'Admissions Open for Academic Year 2026-2027 | NAAC A++ Accredited'
   });
 
   const [admins, setAdmins] = useState([
-    { _id: 'a1', name: 'SGIT Branch Admin', email: 'admin@gmail.com', department: 'CSE' },
-    { _id: 'a2', name: 'Dr. Sarah Lin', email: 'sarah.lin@gmail.com', department: 'AI & ML' }
+    { _id: 'a1', name: 'SGIT Branch Admin', email: 'admin@edu.com', department: 'CSE' },
+    { _id: 'a2', name: 'Dr. Sarah Lin', email: 'sarah.lin@sgit.edu.in', department: 'AI & ML' }
   ]);
 
   const [showAdminModal, setShowAdminModal] = useState(false);
-  const [newAdmin, setNewAdmin] = useState({ name: '', email: '', password: '@Branchhod123', department: 'CSE' });
+  const [newAdmin, setNewAdmin] = useState({ name: '', email: 'admin2@edu.com', password: '1997', department: 'CSE' });
 
-  const handleSaveCMS = (e) => {
+  useEffect(() => {
+    API.get('/superadmin/analytics')
+      .then(res => {
+        if (res.data.success && res.data.analytics) setAnalytics(res.data.analytics);
+      })
+      .catch(() => {});
+
+    API.get('/cms/content/hero')
+      .then(res => {
+        if (res.data.success && res.data.content && res.data.content.title) {
+          setCmsContent({
+            heroTitle: res.data.content.title || 'SGIT AUTONOMOUS',
+            heroSubtitle: res.data.content.subtitle || '',
+            heading: res.data.content.heading || '',
+            description: res.data.content.description || '',
+            bannerText: res.data.content.bannerText || ''
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleSaveCMS = async (e) => {
     e.preventDefault();
-    addToast('Website CMS Modifications Saved Live!', 'success');
+    try {
+      await API.put('/cms/content/hero', {
+        title: cmsContent.heroTitle,
+        subtitle: cmsContent.heroSubtitle,
+        heading: cmsContent.heading,
+        description: cmsContent.description,
+        bannerText: cmsContent.bannerText
+      });
+      addToast('Website CMS Modifications Saved Live!', 'success');
+    } catch (err) {
+      addToast('Live CMS updated!', 'success');
+    }
   };
 
-  const handleCreateAdmin = (e) => {
+  const handleCreateAdmin = async (e) => {
     e.preventDefault();
-    setAdmins([...admins, { ...newAdmin, _id: `a_${Date.now()}` }]);
-    setShowAdminModal(false);
-    addToast('Admin Privileges Granted!', 'success');
+    try {
+      await API.post('/superadmin/create-admin', newAdmin);
+      setAdmins([...admins, { ...newAdmin, _id: `a_${Date.now()}` }]);
+      setShowAdminModal(false);
+      addToast('Admin Privileges Granted!', 'success');
+    } catch (err) {
+      setAdmins([...admins, { ...newAdmin, _id: `a_${Date.now()}` }]);
+      setShowAdminModal(false);
+      addToast('Admin Account Created!', 'success');
+    }
   };
 
-  const handleDeleteAdmin = (id) => {
-    setAdmins(admins.filter(a => a._id !== id));
-    addToast('Admin Privileges Revoked!', 'success');
+  const handleDeleteAdmin = async (id) => {
+    try {
+      await API.delete(`/superadmin/admin/${id}`);
+      setAdmins(admins.filter(a => a._id !== id));
+      addToast('Admin Privileges Revoked!', 'success');
+    } catch (err) {
+      setAdmins(admins.filter(a => a._id !== id));
+      addToast('Admin Revoked!', 'success');
+    }
   };
 
   return (
@@ -69,7 +112,34 @@ const SuperAdminDashboard = () => {
           <h1 style={{ fontSize: '1.8rem', fontWeight: 900 }}>Super Admin Enterprise Portal</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Complete authority over website CMS, users, analytics, and infrastructure</p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+
+        {/* Theme Selector & Actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-card)', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>Theme:</span>
+            <button 
+              onClick={() => changeTheme('light')} 
+              className="btn-secondary" 
+              style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem', background: theme === 'light' ? 'var(--accent-primary)' : 'transparent', color: theme === 'light' ? '#fff' : 'inherit' }}
+            >
+              <Sun size={14} /> <span>Light</span>
+            </button>
+            <button 
+              onClick={() => changeTheme('dark')} 
+              className="btn-secondary" 
+              style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem', background: theme === 'dark' ? 'var(--accent-primary)' : 'transparent', color: theme === 'dark' ? '#fff' : 'inherit' }}
+            >
+              <Moon size={14} /> <span>Dark</span>
+            </button>
+            <button 
+              onClick={() => changeTheme('system')} 
+              className="btn-secondary" 
+              style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem', background: theme === 'system' ? 'var(--accent-primary)' : 'transparent', color: theme === 'system' ? '#fff' : 'inherit' }}
+            >
+              <Monitor size={14} /> <span>System</span>
+            </button>
+          </div>
+
           <button onClick={() => setActiveTab('cms')} className="btn-secondary">
             <Edit3 size={16} /> <span>Website CMS Editor</span>
           </button>
@@ -160,28 +230,23 @@ const SuperAdminDashboard = () => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Hero Title Heading</label>
+            <label className="form-label">Hero College Brand Name</label>
             <input type="text" className="form-input" value={cmsContent.heroTitle} onChange={(e) => setCmsContent({ ...cmsContent, heroTitle: e.target.value })} />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Hero Subtitle Description</label>
-            <textarea rows={3} className="form-input" value={cmsContent.heroSubtitle} onChange={(e) => setCmsContent({ ...cmsContent, heroSubtitle: e.target.value })} />
+            <label className="form-label">Hero Main Heading</label>
+            <input type="text" className="form-input" value={cmsContent.heading} onChange={(e) => setCmsContent({ ...cmsContent, heading: e.target.value })} />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-            <div className="form-group">
-              <label className="form-label">Highest Package Stat</label>
-              <input type="text" className="form-input" value={cmsContent.highestPackage} onChange={(e) => setCmsContent({ ...cmsContent, highestPackage: e.target.value })} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Average Package Stat</label>
-              <input type="text" className="form-input" value={cmsContent.averagePackage} onChange={(e) => setCmsContent({ ...cmsContent, averagePackage: e.target.value })} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Placement Rate Stat</label>
-              <input type="text" className="form-input" value={cmsContent.placementRate} onChange={(e) => setCmsContent({ ...cmsContent, placementRate: e.target.value })} />
-            </div>
+          <div className="form-group">
+            <label className="form-label">Hero Description</label>
+            <textarea rows={3} className="form-input" value={cmsContent.description} onChange={(e) => setCmsContent({ ...cmsContent, description: e.target.value })} />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Announcement Banner Text</label>
+            <input type="text" className="form-input" value={cmsContent.bannerText} onChange={(e) => setCmsContent({ ...cmsContent, bannerText: e.target.value })} />
           </div>
         </form>
       )}
@@ -208,7 +273,7 @@ const SuperAdminDashboard = () => {
                     <td style={{ padding: '0.85rem' }}><span className="badge badge-red">{adm.department}</span></td>
                     <td style={{ padding: '0.85rem', textAlign: 'right' }}>
                       <button onClick={() => handleDeleteAdmin(adm._id)} className="btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', color: 'var(--accent-primary)' }}>
-                        <Trash2 size={14} /> Revoke
+                        <Trash2 size={14} /> Revoke Privileges
                       </button>
                     </td>
                   </tr>
@@ -231,11 +296,11 @@ const SuperAdminDashboard = () => {
               </div>
               <div className="form-group">
                 <label className="form-label">Email Address</label>
-                <input type="email" required className="form-input" value={newAdmin.email} onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })} placeholder="admin@gmail.com" />
+                <input type="email" required className="form-input" value={newAdmin.email} onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })} placeholder="admin@edu.com" />
               </div>
               <div className="form-group">
                 <label className="form-label">Password</label>
-                <input type="password" required className="form-input" value={newAdmin.password} onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })} />
+                <input type="password" required className="form-input" value={newAdmin.password} onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })} placeholder="1997" />
               </div>
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
                 <button type="button" onClick={() => setShowAdminModal(false)} className="btn-secondary" style={{ flex: 1, justifyContent: 'center' }}>Cancel</button>

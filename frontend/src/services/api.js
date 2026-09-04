@@ -8,7 +8,7 @@ const API = axios.create({
 });
 
 API.interceptors.request.use((config) => {
-  const token = localStorage.getItem('aura_token');
+  const token = localStorage.getItem('sgit_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

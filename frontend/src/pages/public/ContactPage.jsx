@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import API from '../../services/api';
-import { Mail, Phone, MapPin, Send, CheckCircle2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Send } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 
 const ContactPage = () => {
@@ -27,9 +27,9 @@ const ContactPage = () => {
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '3rem 2rem' }}>
       <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <div className="badge badge-emerald" style={{ marginBottom: '0.75rem' }}>Get In Touch</div>
-        <h1 style={{ fontSize: '2.8rem', fontWeight: 800 }}>Contact Campus Administration</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>Reach out for corporate hiring partnerships, admissions, or support.</p>
+        <div className="badge badge-red" style={{ marginBottom: '0.75rem' }}>Get In Touch</div>
+        <h1 style={{ fontSize: '2.8rem', fontWeight: 800 }}>Contact SGIT AUTONOMOUS Administration</h1>
+        <p style={{ color: 'var(--text-secondary)' }}>Reach out for corporate hiring partnerships, admissions, or placement support.</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2.5rem' }}>
@@ -37,14 +37,14 @@ const ContactPage = () => {
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', justifyContent: 'center' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Administrative Headquarters</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-            Aura University Campus Plaza, Innovation Boulevard, Suite 400.
+            SGIT Campus Plaza, Technical Boulevard, Innovation District.
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <Mail size={22} style={{ color: 'var(--accent-primary)' }} />
             <div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Email Inquiries</div>
-              <div style={{ fontWeight: 600 }}>admissions@auracollege.edu</div>
+              <div style={{ fontWeight: 600 }}>info@sgit.edu.in</div>
             </div>
           </div>
 
@@ -52,15 +52,15 @@ const ContactPage = () => {
             <Phone size={22} style={{ color: 'var(--accent-emerald)' }} />
             <div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Helpline Hotline</div>
-              <div style={{ fontWeight: 600 }}>+1 (800) 458-AURA-EDU</div>
+              <div style={{ fontWeight: 600 }}>+91 (800) 458-SGIT-EDU</div>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <MapPin size={22} style={{ color: 'var(--accent-cyan)' }} />
+            <MapPin size={22} style={{ color: 'var(--accent-gold)' }} />
             <div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Campus Location</div>
-              <div style={{ fontWeight: 600 }}>San Francisco, California, USA</div>
+              <div style={{ fontWeight: 600 }}>SGIT Autonomous Campus</div>
             </div>
           </div>
         </div>
@@ -77,7 +77,7 @@ const ContactPage = () => {
               className="form-input"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="e.g. Eleanor Vance"
+              placeholder="e.g. Alex Johnson"
             />
           </div>
 
@@ -89,7 +89,7 @@ const ContactPage = () => {
               className="form-input"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="eleanor@example.com"
+              placeholder="alex@gmail.com"
             />
           </div>
 

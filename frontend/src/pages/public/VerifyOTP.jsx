@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import API from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { ShieldCheck, ArrowRight } from 'lucide-react';
 
@@ -8,31 +8,26 @@ const VerifyOTP = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { addToast } = useToast();
+  const { verifyOTP } = useAuth();
   
   const initialEmail = location.state?.email || 'student@gmail.com';
-  const [email, setEmail] = useState(initialEmail);
-  const [otpCode, setOtpCode] = useState('');
+  const initialOTP = location.state?.otpCode || '';
+  const [email] = useState(initialEmail);
+  const [otpCode, setOtpCode] = useState(initialOTP);
   const [loading, setLoading] = useState(false);
 
-  const handleVerify = (e) => {
+  const handleVerify = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    API.post('/auth/verify-otp', { email, otpCode })
-      .then((res) => {
-        setLoading(false);
-        if (res.data.success) {
-          localStorage.setItem('aura_token', res.data.token);
-          localStorage.setItem('aura_user', JSON.stringify(res.data.user));
-          addToast('Account Verified Successfully!', 'success');
-          window.location.href = '/student';
-        }
-      })
-      .catch((err) => {
-        setLoading(false);
-        addToast(err.response?.data?.error || 'Verification verified!', 'success');
-        navigate('/student');
-      });
+    const res = await verifyOTP(email, otpCode);
+    setLoading(false);
+    if (res && res.success) {
+      addToast('Account Verified Successfully!', 'success');
+      navigate('/dashboard');
+    } else {
+      addToast(res?.error || 'Verification failed', 'error');
+    }
   };
 
   return (
@@ -45,6 +40,12 @@ const VerifyOTP = () => {
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '2rem' }}>
           Enter the 6-digit security code sent to <strong>{email}</strong>
         </p>
+
+        {initialOTP && (
+          <div style={{ background: 'rgba(245, 158, 11, 0.15)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', padding: '0.75rem', marginBottom: '1.25rem', fontSize: '0.85rem', color: 'var(--accent-gold)' }}>
+            Dev Hint OTP Code: <strong>{initialOTP}</strong>
+          </div>
+        )}
 
         <form onSubmit={handleVerify}>
           <div className="form-group" style={{ marginBottom: '1.5rem' }}>

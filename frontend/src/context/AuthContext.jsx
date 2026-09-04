@@ -5,93 +5,176 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('aura_user');
+    const savedUser = localStorage.getItem('sgit_user');
     return savedUser ? JSON.parse(savedUser) : null;
   });
-  const [token, setToken] = useState(() => localStorage.getItem('aura_token') || null);
+  const [token, setToken] = useState(() => localStorage.getItem('sgit_token') || null);
   const [loading, setLoading] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
 
+  // Sync token to localStorage
   useEffect(() => {
     if (token) {
-      localStorage.setItem('aura_token', token);
+      localStorage.setItem('sgit_token', token);
     } else {
-      localStorage.removeItem('aura_token');
+      localStorage.removeItem('sgit_token');
     }
   }, [token]);
 
+  // Sync user to localStorage
   useEffect(() => {
     if (user) {
-      localStorage.setItem('aura_user', JSON.stringify(user));
+      localStorage.setItem('sgit_user', JSON.stringify(user));
     } else {
-      localStorage.removeItem('aura_user');
+      localStorage.removeItem('sgit_user');
     }
   }, [user]);
 
+  // Session verification on mount / refresh
+  useEffect(() => {
+    const checkAuthSession = async () => {
+      const storedToken = localStorage.getItem('sgit_token');
+      if (storedToken) {
+        try {
+          const res = await API.get('/auth/me');
+          if (res.data.success && res.data.user) {
+            setUser(res.data.user);
+          }
+        } catch (err) {
+          console.warn('[AuthContext] Session validation warning, using persisted local user session.');
+        }
+      }
+      setAuthLoading(false);
+    };
+
+    checkAuthSession();
+  }, []);
+
+  const handleAuthSuccess = (resData) => {
+    setToken(resData.token);
+    setUser(resData.user);
+    localStorage.setItem('sgit_token', resData.token);
+    localStorage.setItem('sgit_user', JSON.stringify(resData.user));
+    return { success: true, user: resData.user };
+  };
+
+  // Student / General Login
   const login = async (email, password) => {
     setLoading(true);
     try {
       const res = await API.post('/auth/login', { email, password });
+      setLoading(false);
       if (res.data.success) {
-        setToken(res.data.token);
-        setUser(res.data.user);
-        setLoading(false);
-        return { success: true, user: res.data.user };
+        return handleAuthSuccess(res.data);
       }
     } catch (err) {
       setLoading(false);
-      // Fallback for demo credentials if backend DB disconnected
-      let mockRole = 'student';
-      if (email.includes('superadmin')) mockRole = 'superadmin';
-      else if (email.includes('admin')) mockRole = 'admin';
-
-      const mockUser = {
-        id: 'mock_1',
-        name: mockRole === 'superadmin' ? 'Dr. Evelyn Vance' : mockRole === 'admin' ? 'Prof. Marcus Brody' : 'Alex Johnson',
-        email,
-        role: mockRole,
-        department: 'Computer Science & Engineering',
-        enrollmentNo: 'CSE-2024-089',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-        bio: 'Scholar & Senior Full Stack Engineer'
-      };
-      setToken('mock_jwt_token_aura');
-      setUser(mockUser);
-      return { success: true, user: mockUser };
+      const errorMsg = err.response?.data?.error || 'Invalid credentials or server unavailable';
+      return { success: false, error: errorMsg };
     }
   };
 
+  // Dedicated Admin Login
+  const adminLogin = async (email, password) => {
+    setLoading(true);
+    try {
+      const res = await API.post('/auth/admin-login', { email, password });
+      setLoading(false);
+      if (res.data.success) {
+        return handleAuthSuccess(res.data);
+      }
+    } catch (err) {
+      setLoading(false);
+      const errorMsg = err.response?.data?.error || 'Invalid Admin credentials';
+      return { success: false, error: errorMsg };
+    }
+  };
+
+  // Dedicated Super Admin Login
+  const superAdminLogin = async (email, password) => {
+    setLoading(true);
+    try {
+      const res = await API.post('/auth/super-admin-login', { email, password });
+      setLoading(false);
+      if (res.data.success) {
+        return handleAuthSuccess(res.data);
+      }
+    } catch (err) {
+      setLoading(false);
+      const errorMsg = err.response?.data?.error || 'Invalid Super Admin credentials';
+      return { success: false, error: errorMsg };
+    }
+  };
+
+  // Student Registration
   const register = async (userData) => {
     setLoading(true);
     try {
       const res = await API.post('/auth/register', userData);
+      setLoading(false);
       if (res.data.success) {
-        setToken(res.data.token);
-        setUser(res.data.user);
-        setLoading(false);
-        return { success: true, user: res.data.user };
+        return { success: true, requiresOTP: true, email: userData.email, otpCode: res.data.otpCode };
       }
     } catch (err) {
       setLoading(false);
-      const newUser = {
-        id: `user_${Date.now()}`,
-        name: userData.name,
-        email: userData.email,
-        role: userData.role || 'student',
-        department: userData.department || 'Computer Science & Engineering',
-        enrollmentNo: userData.enrollmentNo || '',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
-      };
-      setToken('mock_jwt_token_aura');
-      setUser(newUser);
-      return { success: true, user: newUser };
+      const errorMsg = err.response?.data?.error || 'Registration failed';
+      return { success: false, error: errorMsg };
+    }
+  };
+
+  // Verify OTP
+  const verifyOTP = async (email, otpCode) => {
+    setLoading(true);
+    try {
+      const res = await API.post('/auth/verify-otp', { email, otpCode });
+      setLoading(false);
+      if (res.data.success) {
+        return handleAuthSuccess(res.data);
+      }
+    } catch (err) {
+      setLoading(false);
+      const errorMsg = err.response?.data?.error || 'OTP Verification failed';
+      return { success: false, error: errorMsg };
+    }
+  };
+
+  // Forgot Password Request
+  const forgotPassword = async (email) => {
+    setLoading(true);
+    try {
+      const res = await API.post('/auth/forgot-password', { email });
+      setLoading(false);
+      if (res.data.success) {
+        return { success: true, message: res.data.message, otpCode: res.data.otpCode };
+      }
+    } catch (err) {
+      setLoading(false);
+      const errorMsg = err.response?.data?.error || 'Password reset request failed';
+      return { success: false, error: errorMsg };
+    }
+  };
+
+  // Reset Password
+  const resetPassword = async (email, otpCode, newPassword) => {
+    setLoading(true);
+    try {
+      const res = await API.post('/auth/reset-password', { email, otpCode, newPassword });
+      setLoading(false);
+      if (res.data.success) {
+        return { success: true, message: res.data.message };
+      }
+    } catch (err) {
+      setLoading(false);
+      const errorMsg = err.response?.data?.error || 'Password reset failed';
+      return { success: false, error: errorMsg };
     }
   };
 
   const logout = () => {
     setToken(null);
     setUser(null);
-    localStorage.removeItem('aura_token');
-    localStorage.removeItem('aura_user');
+    localStorage.removeItem('sgit_token');
+    localStorage.removeItem('sgit_user');
   };
 
   const updateUserProfile = (updatedFields) => {
@@ -99,7 +182,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateUserProfile }}>
+    <AuthContext.Provider value={{
+      user, token, loading, authLoading,
+      login, adminLogin, superAdminLogin,
+      register, verifyOTP, forgotPassword, resetPassword,
+      logout, updateUserProfile
+    }}>
       {children}
     </AuthContext.Provider>
   );

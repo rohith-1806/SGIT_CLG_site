@@ -20,6 +20,9 @@ const projectRoutes = require('./routes/projectRoutes');
 const publicRoutes = require('./routes/publicRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const superAdminRoutes = require('./routes/superAdminRoutes');
+const cmsRoutes = require('./routes/cmsRoutes');
+const youtubeRoutes = require('./routes/youtubeRoutes');
+const studentRoutes = require('./routes/studentRoutes');
 
 const app = express();
 
@@ -47,6 +50,7 @@ app.use('/api', limiter);
 
 // Mount API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/student', studentRoutes);
 app.use('/api/resumes', resumeRoutes);
 app.use('/api/ats', atsRoutes);
 app.use('/api/mock-interviews', mockInterviewRoutes);
@@ -55,6 +59,8 @@ app.use('/api/workshops', workshopRoutes);
 app.use('/api/skills', skillRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/public', publicRoutes);
+app.use('/api/cms', cmsRoutes);
+app.use('/api/youtube', youtubeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/superadmin', superAdminRoutes);
 

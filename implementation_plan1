@@ -1,0 +1,104 @@
+# SGIT Autonomous Student Dashboard Architecture + CGPA + Persistence + College Image Polish
+
+This implementation plan outlines the architecture, database schema, API endpoints, and UI refinements required to update the SGIT student portal according to institutional specifications.
+
+## User Review Required
+
+> [!IMPORTANT]
+> - **Top Navigation Removal**: The horizontal top navbar for logged-in students will be removed completely. The student portal will exclusively use a sticky left sidebar on desktop and a drawer sidebar on mobile.
+> - **Database Persistence**: Academic records (semesters, subjects, marks, credits, grades, SGPA, CGPA) will be stored in MongoDB under the student's account. Saved data will persist across browser refreshes and logouts.
+> - **SGIT Grading System**: SGIT standard grade bounds (S >= 90, A = 80-89, B = 70-79, C = 60-69, D = 50-59, E = 40-49, F < 40, Ab = Absent) and degree class thresholds will be enforced and made configurable in the Super Admin panel.
+
+## Proposed Changes
+
+### 1. Database & Backend API
+
+#### [NEW] [AcademicProfile.js](file:///c:/Users/rohit/OneDrive/Desktop/collegesite/backend/models/AcademicProfile.js)
+- Schema for student academic history: `studentId`, `semesters` array (`semesterNumber`, `subjects` array (`subjectName`, `credits`, `marks`, `grade`, `gradePoint`, `creditPoints`), `semesterCredits`, `semesterSGPA`), `cgpa`, `degreeClass`, `totalCredits`.
+
+#### [MODIFY] [User.js](file:///c:/Users/rohit/OneDrive/Desktop/collegesite/backend/models/User.js)
+- Expand User schema fields: `enrollmentId`, `department`, `year`, `semester`, `phone`, `github`, `linkedin`, `portfolio`, `nccStatus`, `nssStatus`, `achievements`.
+
+#### [NEW] [studentRoutes.js](file:///c:/Users/rohit/OneDrive/Desktop/collegesite/backend/routes/studentRoutes.js) & [studentController.js](file:///c:/Users/rohit/OneDrive/Desktop/collegesite/backend/controllers/studentController.js)
+- Endpoints:
+  - `GET /api/student/profile` & `PUT /api/student/profile`
+  - `GET /api/student/academic`
+  - `POST /api/student/academic/semester`
+  - `PUT /api/student/academic/semester/:semesterId`
+  - `DELETE /api/student/academic/subject/:subjectId`
+  - `GET /api/student/cgpa` & `POST /api/student/cgpa/calculate`
+
+#### [NEW] [sgitGrading.js](file:///c:/Users/rohit/OneDrive/Desktop/collegesite/backend/utils/sgitGrading.js)
+- Grading system and class award utility enforcing SGIT rules and calculation functions.
+
+#### [MODIFY] [server.js](file:///c:/Users/rohit/OneDrive/Desktop/collegesite/backend/server.js) & [seedData.js](file:///c:/Users/rohit/OneDrive/Desktop/collegesite/backend/utils/seedData.js)
+- Register `/api/student` routes.
+- Seed demo student `student@sgit.edu` (`SgitStudent@1997`) with sample academic data.
+
+---
+
+### 2. Frontend Layout & Navigation
+
+#### [MODIFY] [Navbar.jsx](file:///c:/Users/rohit/OneDrive/Desktop/collegesite/frontend/src/components/Navbar.jsx)
+- Hide horizontal top navigation links when a student is logged in.
+- Pre-login pages will keep the clean top navbar (`Home`, `About`, `FAQ`, `Contact Us`).
+
+#### [MODIFY] [Sidebar.jsx](file:///c:/Users/rohit/OneDrive/Desktop/collegesite/frontend/src/components/Sidebar.jsx)
+- Redesign into SGIT Collapsible Left Sidebar:
+  - Top: SGIT AUTONOMOUS Logo
+  - Student info: Name, Department, Year
+  - Nav links: Dashboard, My Profile, Academic Progress, CGPA Calculator, Career Toolkit, Internships, Projects, Technical Skills, YouTube Learning, Workshops, NCC, NSS, SGIT Pride, Certificates, Bookmarks, Notifications, Settings, Logout.
+  - Dark/Light mode support & collapse state persistence.
+
+#### [NEW] [StudentPortalLayout.jsx](file:///c:/Users/rohit/OneDrive/Desktop/collegesite/frontend/src/layouts/StudentPortalLayout.jsx)
+- Layout wrapper for authenticated student pages with top bar (breadcrumbs, theme toggle, notifications, profile menu) + left sidebar / mobile drawer + main content area.
+
+---
+
+### 3. Student Pages
+
+#### [MODIFY] [StudentDashboard.jsx](file:///c:/Users/rohit/OneDrive/Desktop/collegesite/frontend/src/pages/student/StudentDashboard.jsx)
+- Restructure dashboard to strictly focus on student academic performance and personal summary.
+- Remove external module cards (Resume, ATS, Mock Interview, Projects, etc. move exclusively to sidebar).
+- Add compact CGPA & SGPA summary card linking to `/academic-progress`.
+
+#### [NEW] [AcademicProgress.jsx](file:///c:/Users/rohit/OneDrive/Desktop/collegesite/frontend/src/pages/student/AcademicProgress.jsx)
+- Page `/academic-progress` for semester-wise performance (Semesters 1–8).
+- Interactive tables to add/edit subjects, credits, and marks with instant grade/gradePoint calculation.
+- Save Progress button that syncs directly with backend MongoDB.
+
+#### [NEW] [CGPACalculator.jsx](file:///c:/Users/rohit/OneDrive/Desktop/collegesite/frontend/src/pages/student/CGPACalculator.jsx)
+- Page `/cgpa-calculator`.
+- SGIT CGPA Calculator with live semester weight calculation, degree class badge, and animated circular progress indicator.
+
+#### [MODIFY] [StudentProfile.jsx](file:///c:/Users/rohit/OneDrive/Desktop/collegesite/frontend/src/pages/student/StudentProfile.jsx)
+- Complete profile editor for academic and personal details, persisting updates to backend database.
+
+#### [MODIFY] [SGITPridePage.jsx](file:///c:/Users/rohit/OneDrive/Desktop/collegesite/frontend/src/pages/student/SGITPridePage.jsx)
+- 10-slide SGIT Pride carousel using official SGIT categories and reliable local asset fallbacks.
+
+#### [MODIFY] [NCCPage.jsx](file:///c:/Users/rohit/OneDrive/Desktop/collegesite/frontend/src/pages/public/NCCPage.jsx)
+- Update NCC page with Unit 186 COY institutional information and CQMS P. ROHITH State Parade achievement card.
+
+---
+
+## Verification Plan
+
+### Automated & API Tests
+1. Test student auth login endpoint with `student@sgit.edu`.
+2. Test GET & PUT `/api/student/profile`.
+3. Test GET & POST `/api/student/academic/semester`.
+4. Test GET & POST `/api/student/cgpa/calculate`.
+
+### Manual End-to-End Verification (Persistence Test)
+1. Login as demo student (`student@sgit.edu` / `SgitStudent@1997`).
+2. Navigate to Academic Progress (`/academic-progress`).
+3. Add subjects with marks & credits for Semester 1 & Semester 2.
+4. Verify auto-calculated grades and SGPA.
+5. Click **SAVE PROGRESS**.
+6. Calculate CGPA on `/cgpa-calculator`.
+7. Log out.
+8. Log in again.
+9. Open `/academic-progress` and verify all semester data, subjects, marks, grades, and SGPA are intact.
+10. Refresh the browser and confirm data survives.
+11. Navigate to `/dashboard` and verify the CGPA summary card displays updated metrics.

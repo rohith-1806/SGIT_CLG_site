@@ -1,8 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { GraduationCap, Shield, Github, Linkedin, Twitter, Globe } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Footer = () => {
+  const { user } = useAuth();
+
+  // Hide huge public footer inside authenticated student portal
+  if (user && user.role === 'student') {
+    return null;
+  }
+
   return (
     <footer style={{
       background: 'var(--bg-secondary)',
@@ -47,21 +55,8 @@ const Footer = () => {
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <li><Link to="/" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.875rem' }}>Home</Link></li>
             <li><Link to="/about" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.875rem' }}>About SGIT</Link></li>
-            <li><Link to="/departments" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.875rem' }}>Departments</Link></li>
-            <li><Link to="/placements" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.875rem' }}>Placements</Link></li>
             <li><Link to="/faq" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.875rem' }}>FAQ</Link></li>
             <li><Link to="/contact" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.875rem' }}>Contact Us</Link></li>
-          </ul>
-        </div>
-
-        {/* Career AI Tools */}
-        <div>
-          <h4 style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '1.25rem', color: 'var(--text-primary)' }}>AI Career Tools</h4>
-          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <li><Link to="/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.875rem' }}>Resume & CV Builder</Link></li>
-            <li><Link to="/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.875rem' }}>ATS Matrix Analyzer</Link></li>
-            <li><Link to="/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.875rem' }}>AI Mock Interview Studio</Link></li>
-            <li><Link to="/projects" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.875rem' }}>Project Showcase</Link></li>
           </ul>
         </div>
 
@@ -70,8 +65,8 @@ const Footer = () => {
           <h4 style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '1.25rem', color: 'var(--text-primary)' }}>Portals</h4>
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <li><Link to="/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.875rem' }}>Student Portal</Link></li>
-            <li><Link to="/admin/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.875rem' }}>Faculty Admin Login</Link></li>
-            <li><Link to="/super-admin/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.875rem' }}>Super Admin Portal</Link></li>
+            <li><Link to="/admin" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.875rem' }}>Faculty Admin Login</Link></li>
+            <li><Link to="/sadmin" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.875rem' }}>Super Admin Portal</Link></li>
           </ul>
         </div>
       </div>

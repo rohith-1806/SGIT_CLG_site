@@ -6,6 +6,10 @@ const FAQPage = () => {
 
   const faqs = [
     {
+      question: 'What is SGIT AUTONOMOUS Platform?',
+      answer: 'SGIT AUTONOMOUS is an integrated career management, skill enhancement, and academic LMS platform tailored for engineering scholars at SGIT AUTONOMOUS college.'
+    },
+    {
       question: 'How does the AI Resume Builder generate vector PDF files?',
       answer: 'Our built-in rendering engine parses client-side HTML DOM elements directly into pixel-perfect PDF vector layouts using html2pdf and canvas engines, ensuring crisp print readability without third-party watermarks.'
     },
@@ -19,14 +23,14 @@ const FAQPage = () => {
     },
     {
       question: 'What are the access privileges for Admin vs Super Admin accounts?',
-      answer: 'Admins can manage student rosters, publish workshops, oversee projects, and broadcast notifications. Super Admins have complete governance over platform revenue architecture, user role creation, audit log auditing, and system backups.'
+      answer: 'Admins can manage student rosters, publish workshops, oversee projects, and broadcast notifications. Super Admins have complete governance over platform content, departments, user roles, audit logs, and system health.'
     }
   ];
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '3rem 2rem' }}>
       <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <div className="badge badge-indigo" style={{ marginBottom: '0.75rem' }}>Knowledge Base</div>
+        <div className="badge badge-red" style={{ marginBottom: '0.75rem' }}>Knowledge Base</div>
         <h1 style={{ fontSize: '2.8rem', fontWeight: 800 }}>Frequently Asked Questions</h1>
         <p style={{ color: 'var(--text-secondary)' }}>Find answers to common platform, AI tools, and governance queries.</p>
       </div>
